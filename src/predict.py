@@ -35,7 +35,7 @@ args = parser.parse_args()
 def main():
 
     # gpu configuration
-    toolkits.initialize_GPU(args)
+    # toolkits.initialize_GPU(args)
 
     import model
     # ==================================
@@ -58,6 +58,8 @@ def main():
 
     total_list = np.concatenate((list1, list2))
     unique_list = np.unique(total_list)
+    unique_list = unique_list[[0,1,-2,-1]]
+    print(unique_list, unique_list.shape)
 
     # ==================================
     #       Get Model
@@ -96,44 +98,61 @@ def main():
     # because each sample is of different lengths.
     total_length = len(unique_list)
     feats, scores, labels = [], [], []
+    network_eval.save("voice_model.tf")
     for c, ID in enumerate(unique_list):
         if c % 50 == 0: print('Finish extracting features for {}/{}th wav.'.format(c, total_length))
         specs = ut.load_data(ID, win_length=params['win_length'], sr=params['sampling_rate'],
                              hop_length=params['hop_length'], n_fft=params['nfft'],
                              spec_len=params['spec_len'], mode='eval')
+        print(specs.shape)
         specs = np.expand_dims(np.expand_dims(specs, 0), -1)
+        print(specs.shape)
     
         v = network_eval.predict(specs)
         feats += [v]
     
     feats = np.array(feats)
-
+    from scipy.spatial import distance
+    print('cosine', distance.cosine(feats[0][0], feats[-1][0]))
+    print('cosine', distance.cosine(feats[1][0], feats[-2][0]))
+    print('cosine', 'same', distance.cosine(feats[0][0], feats[1][0]))
+    print('cosine', 'same', distance.cosine(feats[-1][0], feats[-2][0]))
+    print('norm', np.linalg.norm(feats[0][0]-feats[-1][0]))
+    print('norm', np.linalg.norm(feats[1][0]-feats[-2][0]))
+    print('norm', 'same', np.linalg.norm(feats[0][0]-feats[1][0]))
+    print('norm', 'same', np.linalg.norm(feats[-1][0]-feats[-2][0]))
+    print('eucl', distance.euclidean(feats[0][0],feats[-1][0]))
+    print('eucl', distance.euclidean(feats[1][0],feats[-2][0]))
+    print('eucl', 'same', distance.euclidean(feats[0][0],feats[1][0]))
+    print('eucl', 'same', distance.euclidean(feats[-1][0],feats[-2][0]))
+    np.save('predictor', feats)
     # ==> compute the pair-wise similarity.
-    for c, (p1, p2) in enumerate(zip(list1, list2)):
-        ind1 = np.where(unique_list == p1)[0][0]
-        ind2 = np.where(unique_list == p2)[0][0]
+    # for c, (p1, p2) in enumerate(zip(list1, list2)):
+    #     ind1 = np.where(unique_list == p1)[0][0]
+    #     ind2 = np.where(unique_list == p2)[0][0]
 
-        v1 = feats[ind1, 0]
-        v2 = feats[ind2, 0]
+    #     v1 = feats[ind1, 0]
+    #     v2 = feats[ind2, 0]
 
-        scores += [np.sum(v1*v2)]
-        labels += [verify_lb[c]]
-        print('scores : {}, gt : {}'.format(scores[-1], verify_lb[c]))
+    #     scores += [np.sum(v1*v2)]
+    #     labels += [verify_lb[c]]
+    #     print('scores : {}, gt : {}'.format(scores[-1], verify_lb[c]))
 
-    scores = np.array(scores)
-    labels = np.array(labels)
+    # scores = np.array(scores)
+    # labels = np.array(labels)
 
-    np.save(os.path.join(result_path, 'prediction_scores.npy'), scores)
-    np.save(os.path.join(result_path, 'groundtruth_labels.npy'), labels)
+    # np.save(os.path.join(result_path, 'prediction_scores.npy'), scores)
+    # np.save(os.path.join(result_path, 'groundtruth_labels.npy'), labels)
 
-    eer, thresh = toolkits.calculate_eer(labels, scores)
-    print('==> model : {}, EER: {}'.format(args.resume, eer))
+    # eer, thresh = toolkits.calculate_eer(labels, scores)
+    # print('==> model : {}, EER: {}'.format(args.resume, eer))
 
 
 def set_result_path(args):
     model_path = args.resume
     exp_path = model_path.split(os.sep)
-    result_path = os.path.join('../result', exp_path[2], exp_path[3])
+    print(exp_path)
+    result_path = os.path.join('../result', exp_path[-1])
     if not os.path.exists(result_path): os.makedirs(result_path)
     return result_path
 

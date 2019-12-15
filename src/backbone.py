@@ -1,11 +1,11 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-from keras import layers
-from keras.regularizers import l2
-from keras.layers import Activation, Conv1D, Conv2D, Input, Lambda
-from keras.layers import BatchNormalization, Flatten, Dense, Reshape
-from keras.layers import MaxPooling2D, AveragePooling2D, GlobalAveragePooling2D
+from tensorflow.keras import layers
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.layers import Activation, Conv1D, Conv2D, Input, Lambda
+from tensorflow.keras.layers import BatchNormalization, Flatten, Dense, Reshape
+from tensorflow.keras.layers import MaxPooling2D, AveragePooling2D, GlobalAveragePooling2D
 
 weight_decay = 1e-4
 

@@ -39,7 +39,7 @@ args = parser.parse_args()
 def main():
 
     # gpu configuration
-    toolkits.initialize_GPU(args)
+    # toolkits.initialize_GPU(args)
 
     import model
     import generator
@@ -75,7 +75,7 @@ def main():
                                            mode='train', args=args)
 
     # ==> load pre-trained model ???
-    mgpu = len(keras.backend.tensorflow_backend._get_available_gpus())
+    mgpu = 1#len(keras.backend.tensorflow_backend._get_available_gpus())
     if args.resume:
         if os.path.isfile(args.resume):
             if mgpu == 1: network.load_weights(os.path.join(args.resume))
